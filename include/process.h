@@ -11,15 +11,15 @@ class Process {
   Process(int pid);
   //  Process(int pid):pid_(pid){};
   [[nodiscard]] int Pid() const;
-  [[nodiscard]] std::string User() const;                      // TODO: See src/process.cpp
-  [[nodiscard]] std::string Command() const;                   // TODO: See src/process.cpp
-  [[nodiscard]] float CpuUtilization() const;                  // TODO: See src/process.cpp
-  [[nodiscard]] std::string Ram() const;                       // TODO: See src/process.cpp
-  [[nodiscard]] long int UpTime() const;                       // TODO: See src/process.cpp
-  bool operator<(Process const& a) const;  // TODO: See src/process.cpp
+  [[nodiscard]] std::string User() const;
+  [[nodiscard]] std::string Command() const;
+  [[nodiscard]] float CpuUtilization() const;
+  [[nodiscard]] std::string Ram() const;
+  [[nodiscard]] long int UpTime() const;
+  bool operator<(Process const& a) const;
 
  private:
-  [[nodiscard]] static float CpuUtilizationPid(int pid) ;
+  [[nodiscard]] static float CpuUtilizationPid(int pid);
   int pid_;
   long upTime_;
   float cpuUtilization_;

@@ -8,7 +8,7 @@
 
 namespace LinuxParser {
 
-struct CpuData{
+struct CpuData {
   float user = 0, nice = 0, system = 0, idle = 0, iowait = 0, irq = 0;
   float softirq = 0, steal = 0, gst = 0, gst_nice = 0;
 };

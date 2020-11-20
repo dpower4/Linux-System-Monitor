@@ -6,7 +6,7 @@ float Processor::Utilization(int index) {
   long currTotal = LinuxParser::Jiffies(index);
   long currActive = LinuxParser::ActiveJiffies(index);
 
-  float util_percent = static_cast<float>(currActive  - prevActives_[index]) /
+  float util_percent = static_cast<float>(currActive - prevActives_[index]) /
                        static_cast<float>(currTotal - prevTotals_[index]);
 
   prevTotals_[index] = currTotal;
@@ -16,13 +16,13 @@ float Processor::Utilization(int index) {
 }
 
 Processor::Processor() : proc_count_(LinuxParser::getCpuCount()) {
-  prevTotals_.resize(proc_count_,0);
-  prevActives_.resize(proc_count_,0);
+  prevTotals_.resize(proc_count_, 0);
+  prevActives_.resize(proc_count_, 0);
 }
 
 std::vector<float> Processor::Utilizations() {
   std::vector<float> utils(proc_count_);
-  for(auto i =0; i < proc_count_; i++){
+  for (auto i = 0; i < proc_count_; i++) {
     utils[i] = Utilization(i);
   }
   return utils;
