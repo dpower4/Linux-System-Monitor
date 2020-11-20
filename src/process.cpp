@@ -12,7 +12,8 @@ Process::Process(int pid):pid_(pid) {
   userName_ = LinuxParser::User(pid_);
   command_ = LinuxParser::Command(pid_);
   ram_ = LinuxParser::Ram(pid_);
-  upTime_ = LinuxParser::UpTime(pid_);
+  upTime_ =  LinuxParser::UpTime() -
+            LinuxParser::UpTime(pid_)/sysconf(_SC_CLK_TCK);
   cpuUtilization_ = CpuUtilizationPid(pid_);
 }
 int Process::Pid() const {

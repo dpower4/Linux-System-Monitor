@@ -105,12 +105,12 @@ long LinuxParser::UpTime() {
   return upTime;
 }
 
-long LinuxParser::Jiffies() {
+long LinuxParser::Jiffies(int index) {
   long totalJiffies = 0;
-  vector<string> cpuUtilData = LinuxParser::CpuUtilization();
+  auto cpuUtilData = LinuxParser::CpuUtilization();
   // guest and guest_nice are already accounted for in the user and nice time
   for(int i = kUser_; i <= kSteal_; i++) {
-    totalJiffies += stol(cpuUtilData[i]);
+    totalJiffies += stol(cpuUtilData[index][i]);
   }
   return totalJiffies;
 }
@@ -133,60 +133,41 @@ long LinuxParser::ActiveJiffiesProc(int pid) {
   return totalJiffies;
 }
 
-long LinuxParser::ActiveJiffies() {
+long LinuxParser::ActiveJiffies(int index) {
   // NonIdle = user + nice + system + irq + softirq + steal
-  return LinuxParser::Jiffies() - LinuxParser::IdleJiffies();
+  return LinuxParser::Jiffies(index) - LinuxParser::IdleJiffies(index);
 }
 
-long LinuxParser::IdleJiffies() {
+long LinuxParser::IdleJiffies(int index) {
   long idleJiffies = 0;
   // Idle = idle + iowait
-  vector<string> cpuUtilData = LinuxParser::CpuUtilization();
+  auto cpuUtilData = LinuxParser::CpuUtilization();
   for(int i = kIdle_; i <= kIOwait_; i++) {
-    idleJiffies += stol(cpuUtilData[i]);
+    idleJiffies += stol(cpuUtilData[index][i]);
   }
   return idleJiffies;
 }
 
-vector<string> LinuxParser::CpuUtilization() {
-  // user   nice  system  idle     iowait   irq   softirq  steal  gst  gst_nice
-  // 74608  2520  24433   1117073  6176     4054  0        0      0    0
-//  CpuData cpu_data;
-  vector<string> cpuValues;
+int LinuxParser::getCpuCount() {
   string line;
   string key, value;
+  int count = 0;
 
-//  vector<vector<string>> cpus_data;
-//  std::ifstream filestream(kProcDirectory + kStatFilename);
-//  if (filestream.is_open()) {
-//    while (std::getline(filestream, line)) {
-//      std::replace(line.begin(), line.end(), ':', ' ');
-//      std::istringstream linestream(line);
-//      linestream >> key;
-//      if(key.length() >= 3 && key.substr(0, 3)  == "cpu"){
-//        while(linestream >> value){
-//          cpuValues.emplace_back(value);
-//        }
-//      }
-//    }
-//  }
-
-  // reads only cpu data(1st line)
   std::ifstream filestream(kProcDirectory + kStatFilename);
   if (filestream.is_open()) {
-    std::getline(filestream, line);
-    std::replace(line.begin(), line.end(), ':', ' ');
-    std::istringstream linestream(line);
-    while(linestream >> value) {
-      if (value != "cpu") {
-        cpuValues.emplace_back(value);
+    while (std::getline(filestream, line)) {
+      std::replace(line.begin(), line.end(), ':', ' ');
+      std::istringstream linestream(line);
+      linestream >> key;
+      // if key starts with cpu
+      if(key.length() >= 3 && key.substr(0, 3)  == "cpu"){
+        count++;
       }
     }
   }
-  return cpuValues;
-}
-
-vector<vector<string>> LinuxParser::CpusUtilization() {
+  return count;
+}\
+vector<vector<string>> LinuxParser::CpuUtilization() {
   string line;
   string key, value;
   vector<vector<string>> cpusData;
@@ -197,6 +178,7 @@ vector<vector<string>> LinuxParser::CpusUtilization() {
       std::replace(line.begin(), line.end(), ':', ' ');
       std::istringstream linestream(line);
       linestream >> key;
+      // if key starts with cpu
       if(key.length() >= 3 && key.substr(0, 3)  == "cpu"){
         vector<string> cpuValues;
         while(linestream >> value){
