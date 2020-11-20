@@ -1,16 +1,10 @@
 # Linux-System-Monitor
 Code for System Monitor Project. 
 
-Follow along with the classroom lesson to complete the project!
-
-![System Monitor](images/monitor.png)
-
 ## ncurses
 [ncurses](https://www.gnu.org/software/ncurses/) is a library that facilitates text-based graphical output in the terminal. This project relies on ncurses for display output.
 
-Within the Udacity Workspace, `.student_bashrc` automatically installs ncurses every time you launch the Workspace.
-
-If you are not using the Workspace, install ncurses within your own Linux environment: `sudo apt install libncurses5-dev libncursesw5-dev`
+Install ncurses within your own Linux environment: `sudo apt install libncurses5-dev libncursesw5-dev`
 
 ## Make
 This project uses [Make](https://www.gnu.org/software/make/). The Makefile has four targets:
@@ -22,7 +16,6 @@ This project uses [Make](https://www.gnu.org/software/make/). The Makefile has f
 ## Instructions
 
 1. Build the project: `make build`
-
 3. Run the resulting executable: `./build/monitor`
 
 

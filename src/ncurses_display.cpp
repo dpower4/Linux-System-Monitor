@@ -11,7 +11,7 @@
 using std::string;
 using std::to_string;
 
-// 50 bars uniformly displayed from 0 - 100 %
+// 40 bars uniformly displayed from 0 - 100 %
 // 2% is one bar(|)
 std::string NCursesDisplay::ProgressBar(float percent) {
   std::string result{"0%"};
@@ -139,7 +139,7 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   WINDOW* process_window =
       newwin(3 + n, x_max - 1, system_window->_maxy + cpu_window->_maxy + 2, 0);
 
-  // TODO: remove constant dimensions and make them proportional to window
+  // TODO: remove constant dimensions and make them proportional to window res
 
   //  WINDOW* cpu_window = newwin(8, 65 , 0, 0);
   //  WINDOW* system_window = newwin(8, x_max - cpu_window->_maxx - 3, 0,
