@@ -32,10 +32,10 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
   int row{0};
   mvwprintw(window, ++row, 2, ("OS: " + system.OperatingSystem()).c_str());
   mvwprintw(window, ++row, 2, ("Kernel: " + system.Kernel()).c_str());
-  mvwprintw(window, ++row, 2, "CPU: ");
-  wattron(window, COLOR_PAIR(1));
-  mvwprintw(window, row, 10, "");
-  wprintw(window, ProgressBar(system.Cpu().Utilization()).c_str());
+//  mvwprintw(window, ++row, 2, "CPU: ");
+//  wattron(window, COLOR_PAIR(1));
+//  mvwprintw(window, row, 10, "");
+//  wprintw(window, ProgressBar(system.Cpu().Utilization()).c_str());
   wattroff(window, COLOR_PAIR(1));
   mvwprintw(window, ++row, 2, "Memory: ");
   wattron(window, COLOR_PAIR(1));
@@ -49,6 +49,16 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
       ("Running Processes: " + to_string(system.RunningProcesses())).c_str());
   mvwprintw(window, ++row, 2,
             ("Up Time: " + Format::ElapsedTime(system.UpTime())).c_str());
+  wrefresh(window);
+}
+
+void NCursesDisplay::DisplayCpus(Processor& cpu, WINDOW* window, int n) {
+  int row{0};
+  mvwprintw(window, ++row, 2, "CPU: ");
+  wattron(window, COLOR_PAIR(1));
+  mvwprintw(window, row, 10, "");
+  wprintw(window, ProgressBar(cpu.Utilization()).c_str());
+  wattroff(window, COLOR_PAIR(1));
   wrefresh(window);
 }
 
@@ -70,6 +80,7 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   mvwprintw(window, row, command_column, "COMMAND");
   wattroff(window, COLOR_PAIR(2));
   for (int i = 0; i < n; ++i) {
+    wrefresh(window);
     mvwprintw(window, ++row, pid_column, to_string(processes[i].Pid()).c_str());
     mvwprintw(window, row, user_column, processes[i].User().c_str());
     float cpu = processes[i].CpuUtilization() * 100;
@@ -82,26 +93,33 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   }
 }
 
-void NCursesDisplay::Display(System& system, int n) {
+[[noreturn]] void NCursesDisplay::Display(System& system, int n) {
   initscr();      // start ncurses
   noecho();       // do not print input values
   cbreak();       // terminate ncurses on ctrl + c
   start_color();  // enable color
 
   int x_max{getmaxx(stdscr)};
-  WINDOW* system_window = newwin(9, x_max - 1, 0, 0);
-  WINDOW* process_window =
-      newwin(3 + n, x_max - 1, system_window->_maxy + 1, 0);
 
-  while (1) {
+  WINDOW* system_window = newwin(8, x_max - 1, 0, 0);
+  WINDOW* cpu_window = newwin(7, x_max - 1, system_window->_maxy + 1, 0);
+  WINDOW* process_window =
+      newwin(3 + n, x_max - 1, system_window->_maxy + cpu_window->_maxy + 2, 0);
+
+  while (true) {
     init_pair(1, COLOR_BLUE, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     box(system_window, 0, 0);
     box(process_window, 0, 0);
+    box(cpu_window, 0, 0);
+
     DisplaySystem(system, system_window);
     DisplayProcesses(system.Processes(), process_window, n);
+    DisplayCpus(system.Cpu(), cpu_window, n);
     wrefresh(system_window);
     wrefresh(process_window);
+    wrefresh(cpu_window);
+
     refresh();
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }

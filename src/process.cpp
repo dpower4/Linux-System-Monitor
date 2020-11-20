@@ -1,33 +1,60 @@
 #include <unistd.h>
-#include <cctype>
-#include <sstream>
 #include <string>
-#include <vector>
 
 #include "process.h"
+#include "linux_parser.h"
 
 using std::string;
 using std::to_string;
 using std::vector;
 
-// TODO: Return this process's ID
-int Process::Pid() { return 0; }
+Process::Process(int pid):pid_(pid) {
+  userName_ = LinuxParser::User(pid_);
+  command_ = LinuxParser::Command(pid_);
+  ram_ = LinuxParser::Ram(pid_);
+  upTime_ = LinuxParser::UpTime(pid_);
+  cpuUtilization_ = CpuUtilizationPid(pid_);
+}
+int Process::Pid() const {
+  return pid_;
+}
 
 // TODO: Return this process's CPU utilization
-float Process::CpuUtilization() { return 0; }
+float Process::CpuUtilization() const {
+  return cpuUtilization_;
+}
 
-// TODO: Return the command that generated this process
-string Process::Command() { return string(); }
+float Process::CpuUtilizationPid(int pid_) {
+  long totalTimePid = LinuxParser::ActiveJiffiesProc(pid_);
+  long startTimePid = LinuxParser::UpTime(pid_);
+  long sysUpTime = LinuxParser::UpTime(); // secs
 
-// TODO: Return this process's memory utilization
-string Process::Ram() { return string(); }
+  float seconds = sysUpTime - startTimePid/sysconf(_SC_CLK_TCK);
+  if (seconds  == 0){
+    return 0;
+  }
+  return (float)(totalTimePid / sysconf(_SC_CLK_TCK)) / seconds;
+}
 
-// TODO: Return the user (name) that generated this process
-string Process::User() { return string(); }
+string Process::Command() const {
+  return command_;
+}
 
-// TODO: Return the age of this process (in seconds)
-long int Process::UpTime() { return 0; }
+string Process::Ram() const {
+  return ram_;
+}
+
+string Process::User() const {
+  return userName_;
+}
+
+long int Process::UpTime() const {
+  return  upTime_;
+}
 
 // TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a[[maybe_unused]]) const { return true; }
+bool Process::operator<(Process const& a) const {
+
+  // cpu utilization, if equal then use ram as secondary
+  return this->cpuUtilization_ > a.cpuUtilization_;
+}

@@ -4,8 +4,15 @@
 #include <fstream>
 #include <regex>
 #include <string>
+#include <unordered_map>
 
 namespace LinuxParser {
+
+struct CpuData{
+  float user = 0, nice = 0, system = 0, idle = 0, iowait = 0, irq = 0;
+  float softirq = 0, steal = 0, gst = 0, gst_nice = 0;
+};
+
 // Paths
 const std::string kProcDirectory{"/proc/"};
 const std::string kCmdlineFilename{"/cmdline"};
@@ -26,6 +33,7 @@ int TotalProcesses();
 int RunningProcesses();
 std::string OperatingSystem();
 std::string Kernel();
+std::string GetValueForKey(const std::string& filename, const std::string& key);
 
 // CPU
 enum CPUStates {
@@ -40,10 +48,13 @@ enum CPUStates {
   kGuest_,
   kGuestNice_
 };
+
 std::vector<std::string> CpuUtilization();
+std::vector<std::vector<std::string>> CpusUtilization();
+
 long Jiffies();
 long ActiveJiffies();
-long ActiveJiffies(int pid);
+long ActiveJiffiesProc(int pid);
 long IdleJiffies();
 
 // Processes
