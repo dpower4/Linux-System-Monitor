@@ -230,6 +230,7 @@ string LinuxParser::Command(int pid) {
   if (filestream.is_open()) {
     std::getline(filestream, line);
   }
+  std::replace(line.begin(), line.end(), '\0', ' ');
   return line;
 }
 
