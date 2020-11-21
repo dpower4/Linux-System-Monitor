@@ -8,8 +8,7 @@ It contains relevant attributes as shown below
 */
 class Process {
  public:
-  Process(int pid);
-  //  Process(int pid):pid_(pid){};
+  explicit Process(int pid);
   [[nodiscard]] int Pid() const;
   [[nodiscard]] std::string User() const;
   [[nodiscard]] std::string Command() const;

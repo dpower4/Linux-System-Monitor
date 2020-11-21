@@ -66,10 +66,8 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
   wrefresh(window);
 }
 
-void NCursesDisplay::DisplayCpus(System& system, WINDOW* window) {
+void NCursesDisplay::DisplayCpus(System& system, WINDOW* window, int cpuCount) {
   int row{0};
-
-  int cpuCount = system.Cpu().getProcCount();
   auto utilData = system.Cpu().Utilizations();
 
   mvwprintw(window, ++row, 2, "Memory: ");
@@ -112,15 +110,20 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   mvwprintw(window, row, command_column, "COMMAND");
   wattroff(window, COLOR_PAIR(2));
   for (int i = 0; i < n; ++i) {
-    mvwprintw(window, ++row, pid_column, to_string(processes[i].Pid()).c_str());
+    mvwprintw(window, ++row, pid_column, string(user_column - pid_column,' ').c_str());
+    mvwprintw(window, row, pid_column, to_string(processes[i].Pid()).c_str());
+    mvwprintw(window, row, user_column, string(cpu_column - user_column,' ').c_str());
     mvwprintw(window, row, user_column, processes[i].User().c_str());
     float cpu = processes[i].CpuUtilization() * 100;
+    mvwprintw(window, row, cpu_column, string(4,' ').c_str());
     mvwprintw(window, row, cpu_column, to_string(cpu).substr(0, 4).c_str());
+    mvwprintw(window, row, ram_column, string(time_column - ram_column,' ').c_str());
     mvwprintw(window, row, ram_column, processes[i].Ram().c_str());
     mvwprintw(window, row, time_column,
               Format::ElapsedTime(processes[i].UpTime()).c_str());
+    mvwprintw(window, row, command_column, string(window->_maxx - command_column,' ').c_str());
     mvwprintw(window, row, command_column,
-              processes[i].Command().substr(0, window->_maxx - 46).c_str());
+              processes[i].Command().substr(0, window->_maxx - command_column).c_str());
   }
   wrefresh(window);
 }
@@ -132,15 +135,15 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   start_color();  // enable color
 
   int x_max{getmaxx(stdscr)};
+  int cpuCount = system.Cpu().getProcCount();
 
   // stacked boxes format
   WINDOW* system_window = newwin(7, x_max - 1, 0, 0);
-  WINDOW* cpu_window = newwin(9, x_max - 1, system_window->_maxy + 1, 0);
+  WINDOW* cpu_window = newwin(4 + cpuCount, x_max - 1, system_window->_maxy + 1, 0);
   WINDOW* process_window =
       newwin(3 + n, x_max - 1, system_window->_maxy + cpu_window->_maxy + 2, 0);
 
   // TODO: remove constant dimensions and make them proportional to window res
-
   //  WINDOW* cpu_window = newwin(8, 65 , 0, 0);
   //  WINDOW* system_window = newwin(8, x_max - cpu_window->_maxx - 3, 0,
   //  cpu_window->_maxx + 2);
@@ -148,7 +151,7 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   //      newwin(3 + n, x_max - 1, system_window->_maxy + 1, 0);
 
   while (true) {
-    endwin();
+//    endwin();
     init_pair(0, COLOR_WHITE, COLOR_BLACK);
     init_pair(1, COLOR_CYAN, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
@@ -161,13 +164,13 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
 
     DisplaySystem(system, system_window);
     DisplayProcesses(system.Processes(), process_window, n);
-    DisplayCpus(system, cpu_window);
+    DisplayCpus(system, cpu_window, cpuCount);
     wrefresh(system_window);
     wrefresh(process_window);
     wrefresh(cpu_window);
 
     refresh();
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds (500));
   }
   endwin();
 }
